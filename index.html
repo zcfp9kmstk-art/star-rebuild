@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>星界再構築 — Incremental Game</title>
+<style>
+:root{--bg:#070b18;--panel:#10182c;--panel2:#151f38;--line:#273655;--text:#eef4ff;--muted:#91a2c3;--cyan:#6be7ff;--violet:#ad8bff;--gold:#ffd88a;--green:#8bf0c1;--danger:#ff9aaf}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -10%,#1b2a52 0%,var(--bg) 55%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;min-height:100vh}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);border-radius:12px;color:var(--text);background:#1a2743;padding:10px 13px;transition:.15s}button:hover:not(:disabled){transform:translateY(-1px);border-color:var(--cyan);background:#223456}button:disabled{opacity:.42;cursor:not-allowed}
+.app{max-width:1160px;margin:auto;padding:22px 16px 40px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#64e7ff,#a78bfa);color:#091020;font-size:23px;box-shadow:0 0 28px #70dfff30}.eyebrow{color:var(--cyan);font-size:11px;letter-spacing:.2em;text-transform:uppercase}.brand h1{font-size:21px;margin:2px 0 0}.save-status{font-size:12px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.stat,.panel{background:linear-gradient(145deg,#111a30ee,#0c1325f2);border:1px solid var(--line);border-radius:18px}.stat{padding:14px 16px}.stat .label{font-size:12px;color:var(--muted);margin-bottom:8px}.stat .value{font-size:clamp(18px,2.5vw,27px);font-weight:750;letter-spacing:-.03em}.stat .sub{font-size:11px;color:var(--muted);margin-top:5px}
+.tabs{display:flex;gap:8px;margin:16px 0 12px;flex-wrap:wrap}.tab{background:transparent;color:var(--muted)}.tab.active{background:#1d2d4d;border-color:#6482bb;color:white}
+.view{display:none}.view.active{display:block}.main-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1.25fr);gap:14px}.panel{padding:18px}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.panel h2{font-size:15px;margin:0}.small{font-size:12px;color:var(--muted)}
+.core{min-height:340px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden}.core:before{content:"";position:absolute;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,#6be7ff12,transparent 68%);pointer-events:none}.orb{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;margin:10px 0 16px;position:relative;background:radial-gradient(circle at 35% 30%,#e9ffff 0%,#73e7ff 8%,#3e8ad0 24%,#25256a 52%,#0d142c 72%);box-shadow:inset -14px -18px 28px #050818cc,0 0 25px #6be7ff55,0 0 65px #7865ff30;animation:float 5s ease-in-out infinite}.orb:before,.orb:after{content:"";position:absolute;border:1px solid #a4eaff88;border-radius:50%;width:190px;height:56px;transform:rotate(-24deg)}.orb:after{width:210px;height:72px;transform:rotate(25deg);border-color:#b6a5ff66}.orb span{font-size:40px;filter:drop-shadow(0 0 10px #fff)}@keyframes float{50%{transform:translateY(-5px)}}.core h2{font-size:18px;margin:0 0 5px}.core p{margin:0;color:var(--muted);font-size:12px}.click-btn{margin-top:17px;background:linear-gradient(135deg,#287caa,#5849a9);border:0;padding:12px 22px;font-weight:700;box-shadow:0 8px 24px #2778a833}.click-btn:active{transform:scale(.98)}
+.facility-list{display:grid;gap:9px}.facility{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:11px;align-items:center;padding:12px;border:1px solid #263553;background:#111b31;border-radius:14px}.facility-icon{width:42px;height:42px;border-radius:12px;background:#1c2b4a;display:grid;place-items:center;font-size:21px}.facility h3{font-size:13px;margin:0 0 4px}.facility .meta{font-size:11px;color:var(--muted);line-height:1.5}.facility button{font-size:12px;min-width:112px;padding:9px}.facility button strong{display:block;font-size:13px}.section-note{font-size:12px;line-height:1.6;color:var(--muted);margin:0 0 14px}
+.prestige-hero{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:18px;border:1px solid #66559a;background:linear-gradient(120deg,#261d4b,#11182d 70%);border-radius:16px;margin-bottom:14px}.prestige-hero h2{margin:0 0 6px;font-size:18px}.prestige-hero p{margin:0;color:#b9b9e4;font-size:12px;line-height:1.6}.gain{font-size:28px;font-weight:800;color:var(--gold);white-space:nowrap}.prestige-btn{background:linear-gradient(135deg,#7759c8,#3e8fc4);border:0;font-weight:750;padding:13px 17px}.warning{font-size:11px;color:var(--muted);margin-top:8px}
+.research-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.research-col{background:#0e162a;border:1px solid var(--line);border-radius:15px;padding:13px}.research-col h3{font-size:13px;margin:0 0 4px}.research-col .desc{font-size:11px;color:var(--muted);min-height:32px;margin-bottom:10px}.upgrade{padding:12px;border-radius:12px;background:#141f37;border:1px solid #2a3a5c;margin-top:8px}.upgrade.owned{border-color:#398a7d;background:#102a30}.upgrade h4{font-size:12px;margin:0 0 6px}.upgrade p{font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 10px}.upgrade button{width:100%;font-size:11px;padding:8px}.owned-tag{font-size:10px;color:var(--green)}
+.log{display:grid;gap:8px}.log-item{padding:10px 12px;background:#111b30;border:1px solid #263553;border-radius:10px;font-size:12px;color:#c3d0e8}.empty{padding:24px;text-align:center;color:var(--muted);font-size:12px}.footer{margin-top:15px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:11px}.secondary{background:transparent;color:var(--muted);font-size:11px;padding:8px 10px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);background:#eaf7ff;color:#0c1630;padding:11px 16px;border-radius:12px;font-weight:700;font-size:13px;opacity:0;pointer-events:none;transition:.22s;box-shadow:0 8px 35px #0008;z-index:10}.toast.show{opacity:1;transform:translate(-50%,0)}
+.modal-backdrop{position:fixed;inset:0;background:#030611cc;display:none;place-items:center;padding:16px;z-index:20}.modal-backdrop.show{display:grid}.modal{max-width:440px;width:100%;background:#111a30;border:1px solid #4b5e83;border-radius:20px;padding:22px;box-shadow:0 20px 80px #0009}.modal h2{margin:0 0 8px}.modal p{color:var(--muted);font-size:13px;line-height:1.6}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+@media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}.main-grid{grid-template-columns:1fr}.research-grid{grid-template-columns:1fr}.research-col .desc{min-height:0}.core{min-height:300px}.top{align-items:flex-start}.facility{grid-template-columns:38px minmax(0,1fr)}.facility-icon{width:38px;height:38px}.facility button{grid-column:2;justify-self:start;width:100%;max-width:200px}.prestige-hero{grid-template-columns:1fr}.gain{font-size:24px}.app{padding:16px 12px 30px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><div class="logo">✦</div><div><div class="eyebrow">COSMIC INCREMENTAL</div><h1>星界再構築</h1></div></div>
+    <div class="save-status" id="saveStatus">● ローカルセーブ有効</div>
+  </header>
+  <section class="stats">
+    <div class="stat"><div class="label">現在のエネルギー</div><div class="value" id="energy">0</div><div class="sub" id="energySub">宇宙の始まり</div></div>
+    <div class="stat"><div class="label">生産速度</div><div class="value" id="rate">0 /秒</div><div class="sub">全設備の合計</div></div>
+    <div class="stat"><div class="label">記憶ポイント</div><div class="value" id="memories">0</div><div class="sub" id="memorySub">転生で獲得する恒久資源</div></div>
+    <div class="stat"><div class="label">今回の最大エネルギー</div><div class="value" id="peak">0</div><div class="sub" id="runNumber">第1宇宙</div></div>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="production">✧ 生産</button>
+    <button class="tab" data-tab="research">⌘ 恒久研究</button>
+    <button class="tab" data-tab="prestige">⟳ 転生</button>
+    <button class="tab" data-tab="records">☰ 記録</button>
+  </nav>
+
+  <main>
+    <section class="view active" id="view-production">
+      <div class="main-grid">
+        <div class="panel core">
+          <div class="eyebrow">THE HEART OF THE UNIVERSE</div>
+          <div class="orb"><span>✦</span></div>
+          <h2>星界コア</h2>
+          <p>エネルギーを生み、宇宙を広げよう。</p>
+          <button class="click-btn" id="clickCore">✧ エネルギーを集める <span id="clickGain">+1</span></button>
+          <p style="margin-top:12px" id="coreHint">設備を建てると自動生産が始まる。</p>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>生産設備</h2><span class="small">購入するほど価格上昇</span></div>
+          <div class="facility-list" id="facilityList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-research">
+      <div class="panel">
+        <div class="panel-head"><h2>恒久研究ツリー</h2><span class="small">転生しても失われない</span></div>
+        <p class="section-note">記憶ポイントを使って宇宙の法則を強化する。購入済みの研究は次の宇宙にも引き継がれる。</p>
+        <div class="research-grid" id="researchGrid"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-prestige">
+      <div class="panel">
+        <div class="prestige-hero">
+          <div><div class="eyebrow">COSMIC REBIRTH</div><h2>宇宙を再構築する</h2><p>設備とエネルギーを手放し、宇宙の記憶を獲得する。記憶は永久に残り、次の宇宙をより速く成長させる。</p></div>
+          <div><div class="small">今回の獲得予定</div><div class="gain" id="prestigeGain">+0 記憶</div></div>
+        </div>
+        <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat"><div class="label">最大エネルギー</div><div class="value" id="prestigePeak">0</div></div>
+          <div class="stat"><div class="label">転生条件</div><div class="value" style="font-size:19px" id="prestigeCondition">100万</div></div>
+          <div class="stat"><div class="label">次の報酬段階</div><div class="value" style="font-size:19px" id="nextReward">—</div></div>
+        </div>
+        <button class="prestige-btn" id="prestigeButton" style="width:100%;margin-top:8px">⟳ 宇宙を再構築する</button>
+        <div class="warning">転生するとエネルギーと通常設備がリセットされます。記憶と恒久研究は保持されます。</div>
+      </div>
+      <div class="panel" style="margin-top:14px"><h2 style="margin-bottom:10px">転生のしくみ</h2><p class="section-note">記憶報酬 = floor((今回の最大エネルギー ÷ 1,000,000) ^ 0.35)。最大エネルギーが100万未満の場合は転生できません。より高いエネルギーに到達するほど、獲得する記憶が増えます。</p></div>
+    </section>
+
+    <section class="view" id="view-records">
+      <div class="panel">
+        <div class="panel-head"><h2>宇宙の記録</h2><button class="secondary" id="resetSave">セーブを初期化</button></div>
+        <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat"><div class="label">転生回数</div><div class="value" id="recordRebirths">0</div></div>
+          <div class="stat"><div class="label">累計獲得記憶</div><div class="value" id="recordTotal">0</div></div>
+          <div class="stat"><div class="label">購入した研究</div><div class="value" id="recordResearch">0</div></div>
+        </div>
+        <div class="log" id="logList"></div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><span>星界再構築 v0.1 · 試作品</span><span>進行状況はこのブラウザに保存されます</span></footer>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal-backdrop" id="modalBackdrop"><div class="modal"><h2 id="modalTitle">宇宙を再構築しますか？</h2><p id="modalText"></p><div class="modal-actions"><button id="modalCancel">やめる</button><button class="prestige-btn" id="modalConfirm">再構築する</button></div></div></div>
+<script>
+(() => {
+const SAVE_KEY='star-rebuild-save-v1';
+const facilities=[
+ {id:'dust',name:'星屑収集器',icon:'✧',base:10,rate:.2,mult:1.15,desc:'宇宙に漂う微細なエネルギーを集める。'},
+ {id:'core',name:'星核炉',icon:'◉',base:100,rate:2,mult:1.16,desc:'星の核を安定した動力へ変換。'},
+ {id:'mine',name:'恒星採掘機',icon:'☼',base:1200,rate:18,mult:1.17,desc:'恒星の奥深くから力を掘り出す。'},
+ {id:'nebula',name:'星雲培養器',icon:'❋',base:15000,rate:180,mult:1.18,desc:'星雲を育て、新たなエネルギーを生む。'},
+ {id:'galaxy',name:'銀河反応炉',icon:'🌀',base:250000,rate:2200,mult:1.19,desc:'銀河の運動を巨大な動力へ変える。'},
+ {id:'dimension',name:'次元発電機',icon:'⌘',base:5000000,rate:30000,mult:1.20,desc:'次元の境界から無尽蔵の力を引き出す。'}
+];
+const upgrades=[
+ {id:'echo',tree:'星の記憶',icon:'✦',name:'星の残響',cost:1,desc:'全設備の生産量 +50%。',type:'production',bonus:.5,requires:null},
+ {id:'will',tree:'星の記憶',icon:'☼',name:'恒星の意志',cost:3,desc:'全設備の生産量 +100%。',type:'production',bonus:1,requires:'echo'},
+ {id:'pulse',tree:'星の記憶',icon:'✺',name:'宇宙の脈動',cost:7,desc:'全設備の生産量 +200%。',type:'production',bonus:2,requires:'will'},
+ {id:'start',tree:'創世の記憶',icon:'✧',name:'初期エネルギー',cost:1,desc:'各周回をエネルギー100で開始。',type:'startingEnergy',bonus:100,requires:null},
+ {id:'stash',tree:'創世の記憶',icon:'▦',name:'星屑の備蓄',cost:3,desc:'各周回で星屑収集器を5台保有。',type:'startingDust',bonus:5,requires:'start'},
+ {id:'efficiency',tree:'時空の記憶',icon:'⏱',name:'効率化',cost:2,desc:'設備価格を10%削減。',type:'discount',bonus:.1,requires:null},
+ {id:'compression',tree:'時空の記憶',icon:'⌁',name:'時空圧縮',cost:5,desc:'設備価格をさらに10%削減。',type:'discount',bonus:.1,requires:'efficiency'}
+];
+const initialState=()=>({energy:0,peak:0,memories:0,totalMemories:0,owned:{dust:0,core:0,mine:0,nebula:0,galaxy:0,dimension:0},purchased:[],rebirths:0,log:[],lastUpdate:Date.now(),startedAt:Date.now()});
+let state=load();
+let lastRender=0;
+function load(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return initialState();const s=JSON.parse(raw);const d=initialState();return {...d,...s,owned:{...d.owned,...(s.owned||{})},purchased:Array.isArray(s.purchased)?s.purchased:[],log:Array.isArray(s.log)?s.log:[]}}catch(e){return initialState()}}
+function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));$('saveStatus').textContent='● 保存済み · '+new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}catch(e){$('saveStatus').textContent='⚠ 保存できません'}}
+function $(id){return document.getElementById(id)}
+function fmt(n){if(!Number.isFinite(n))return '∞';if(n<1000)return (n<10&&n%1!==0?n.toFixed(1):Math.floor(n)).toLocaleString('ja-JP');const units=[['Qa',1e15],['T',1e12],['B',1e9],['M',1e6],['K',1e3]];for(const [u,v] of units)if(n>=v)return (n/v).toFixed(n/v<100?2:1).replace(/\.?0+$/,'')+u;return Math.floor(n).toLocaleString('ja-JP')}
+function priceOf(f){const discount=Math.min(.3,upgrades.filter(u=>u.type==='discount'&&state.purchased.includes(u.id)).reduce((a,u)=>a+u.bonus,0));return Math.max(1,Math.floor(f.base*Math.pow(f.mult,state.owned[f.id]||0)*(1-discount)))}
+function productionMultiplier(){return 1+upgrades.filter(u=>u.type==='production'&&state.purchased.includes(u.id)).reduce((a,u)=>a+u.bonus,0)}
+function production(){return facilities.reduce((sum,f)=>sum+(state.owned[f.id]||0)*f.rate,0)*productionMultiplier()}
+function gainFor(peak){return peak<1e6?0:Math.floor(Math.pow(peak/1e6,.35))}
+function addLog(text){state.log.unshift({text,time:Date.now()});state.log=state.log.slice(0,12)}
+function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1900)}
+function renderFacilities(){$('facilityList').innerHTML=facilities.map(f=>{const price=priceOf(f),owned=state.owned[f.id]||0,can=state.energy>=price;return `<article class="facility"><div class="facility-icon">${f.icon}</div><div><h3>${f.name} <span class="small">×${owned}</span></h3><div class="meta">${f.desc}<br>生産 +${fmt(f.rate*productionMultiplier())}/秒 · 次の価格 ${fmt(price)}</div></div><button data-buy="${f.id}" ${can?'':'disabled'}><strong>購入</strong>${fmt(price)} エネルギー</button></article>`}).join('')}
+function renderResearch(){const trees=[...new Set(upgrades.map(u=>u.tree))];$('researchGrid').innerHTML=trees.map(tree=>`<div class="research-col"><h3>${tree}</h3><div class="desc">${tree==='星の記憶'?'生産力を直接引き上げる。':tree==='創世の記憶'?'周回序盤の立ち上がりを速める。':'設備投資のコストを下げる。'}</div>${upgrades.filter(u=>u.tree===tree).map(u=>{const owned=state.purchased.includes(u.id),locked=u.requires&&!state.purchased.includes(u.requires),can=state.memories>=u.cost&&!locked;return `<div class="upgrade ${owned?'owned':''}"><h4>${u.icon} ${u.name}</h4><p>${u.desc}${locked?'<br>前提研究が必要。':''}</p>${owned?'<div class="owned-tag">✓ 研究済み</div>':`<button data-upgrade="${u.id}" ${can?'':'disabled'}>${locked?'未解放':`研究する · ${u.cost} 記憶`}</button>`}</div>`}).join('')}</div>`).join('')}
+function renderRecords(){$('recordRebirths').textContent=state.rebirths;$('recordTotal').textContent=fmt(state.totalMemories);$('recordResearch').textContent=state.purchased.length;$('logList').innerHTML=state.log.length?state.log.map(l=>`<div class="log-item">${l.text}<div class="small" style="margin-top:5px">${new Date(l.time).toLocaleString('ja-JP')}</div></div>`).join(''):'<div class="empty">まだ記録はありません。最初の転生を目指そう。</div>'}
+function render(){const rate=production(),gain=gainFor(state.peak);$('energy').textContent=fmt(state.energy);$('energySub').textContent=state.energy<1e6?'転生条件まで '+fmt(Math.max(0,1e6-state.peak))+' エネルギー':'転生可能 · さらなる成長も狙える';$('rate').textContent=fmt(rate)+' /秒';$('memories').textContent=fmt(state.memories);$('memorySub').textContent='累計獲得 '+fmt(state.totalMemories)+' 記憶';$('peak').textContent=fmt(state.peak);$('runNumber').textContent='第'+(state.rebirths+1)+'宇宙';$('clickGain').textContent='+'+fmt(1+Math.floor(productionMultiplier()));$('prestigeGain').textContent='+'+fmt(gain)+' 記憶';$('prestigePeak').textContent=fmt(state.peak);$('prestigeCondition').textContent=state.peak>=1e6?'達成 ✓':'100万';$('prestigeButton').disabled=gain<=0;
+const next=gain+1;const nextEnergy=1e6*Math.pow(next,1/.35);$('nextReward').textContent=state.peak>=nextEnergy?'達成 ✓':fmt(nextEnergy);
+renderFacilities();renderResearch();renderRecords()}
+function buyFacility(id){const f=facilities.find(x=>x.id===id);if(!f)return;const p=priceOf(f);if(state.energy<p)return;state.energy-=p;state.owned[id]=(state.owned[id]||0)+1;addLog(`${f.name}を購入（保有 ${state.owned[id]}台）`);save();render()}
+function buyUpgrade(id){const u=upgrades.find(x=>x.id===id);if(!u||state.purchased.includes(id)||state.memories<u.cost||(u.requires&&!state.purchased.includes(u.requires)))return;state.memories-=u.cost;state.purchased.push(id);addLog(`恒久研究「${u.name}」を解放`);save();toast(`${u.name}を研究した！`);render()}
+function doPrestige(){const gain=gainFor(state.peak);if(gain<=0)return;state.memories+=gain;state.totalMemories+=gain;state.rebirths++;const keptPurchased=[...state.purchased],mem=state.memories,total=state.totalMemories,rebirths=state.rebirths,log=state.log;state.energy=upgrades.some(u=>u.id==='start'&&keptPurchased.includes(u.id))?100:0;state.peak=state.energy;state.owned={dust:0,core:0,mine:0,nebula:0,galaxy:0,dimension:0};if(keptPurchased.includes('stash'))state.owned.dust=5;state.purchased=keptPurchased;state.memories=mem;state.totalMemories=total;state.rebirths=rebirths;state.log=log;addLog(`第${state.rebirths}回転生：記憶 +${gain}（累計 ${state.totalMemories}）`);state.lastUpdate=Date.now();save();$('modalBackdrop').classList.remove('show');switchTab('production');toast(`宇宙を再構築した！ 記憶 +${gain}`);render()}
+function switchTab(tab){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+tab))}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+$('facilityList').addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(b)buyFacility(b.dataset.buy)});
+$('researchGrid').addEventListener('click',e=>{const b=e.target.closest('[data-upgrade]');if(b)buyUpgrade(b.dataset.upgrade)});
+$('clickCore').addEventListener('click',()=>{const amount=1+Math.floor(productionMultiplier());state.energy+=amount;state.peak=Math.max(state.peak,state.energy);render()});
+$('prestigeButton').addEventListener('click',()=>{const g=gainFor(state.peak);if(g<=0)return;$('modalTitle').textContent='宇宙を再構築しますか？';$('modalText').textContent=`記憶を ${g} 個獲得します。エネルギーとすべての通常設備はリセットされます。記憶と恒久研究は保持されます。`; $('modalBackdrop').classList.add('show')});
+$('modalCancel').addEventListener('click',()=>$('modalBackdrop').classList.remove('show'));
+$('modalConfirm').addEventListener('click',doPrestige);
+$('modalBackdrop').addEventListener('click',e=>{if(e.target===$('modalBackdrop'))$('modalBackdrop').classList.remove('show')});
+$('resetSave').addEventListener('click',()=>{if(confirm('セーブデータを完全に初期化しますか？この操作は取り消せません。')){state=initialState();save();render();toast('セーブを初期化しました')}});
+
+function tick(){const now=Date.now();const dt=Math.min((now-state.lastUpdate)/1000,10);state.lastUpdate=now;if(dt>0){state.energy+=production()*dt;state.peak=Math.max(state.peak,state.energy)}if(now-lastRender>120){render();lastRender=now}if(now%5000<130)save()}
+render();save();setInterval(tick,100);
+})();
+</script>
+</body>
+</html>

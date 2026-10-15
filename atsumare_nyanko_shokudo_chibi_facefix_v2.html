@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fff5e8"><meta name="color-scheme" content="light"><title>あつまれ！にゃんこ食堂</title>
+<style>
+:root{--ink:#59443e;--cream:#fff8ee;--pink:#ff9fbd}*{box-sizing:border-box}
+body{margin:0;padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom);background:var(--cream);color:var(--ink);font-family:ui-rounded,"Hiragino Maru Gothic ProN","Yu Gothic",system-ui,sans-serif}
+button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.app{max-width:720px;margin:auto;padding:12px 0 24px}header{text-align:center;padding:8px 0 14px}
+h1{font-size:clamp(23px,6vw,35px);color:#b56f66;margin:2px 0 6px}.sub{font-size:13px;color:#9b7b6e}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.stat,.panel{background:#fffdf9;border:2px solid #f4dfcf;border-radius:17px;padding:11px;box-shadow:0 3px 0 #ecd4c1}
+.small{font-size:12px;color:#98786b}.num{font-size:22px;font-weight:900;margin-top:3px}
+.scene{height:clamp(310px,53vh,455px);position:relative;overflow:hidden;border:3px solid #edc8a9;border-radius:25px;background:linear-gradient(#fff0d9 0 69%,#dcebc9 69%);box-shadow:inset 0 -7px #c2d9ae,0 5px 0 #e8c7ad}
+.window{position:absolute;top:18px;left:18px;width:82px;height:85px;border:6px solid #d99b77;border-radius:12px;background:#d9f2f7}
+.window:before,.window:after{content:"";position:absolute;background:#fff9e8}.window:before{width:5px;height:100%;left:50%}.window:after{height:5px;width:100%;top:50%}
+.sun{position:absolute;right:24px;top:20px;font-size:34px}.shelf{position:absolute;top:46%;height:9px;left:0;right:0;background:#d9a47e;border-bottom:3px solid #bd835f}
+.plant{position:absolute;left:20px;bottom:15%;font-size:37px}.bowl{position:absolute;left:50%;top:57%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:2}
+.bowl .food{font-size:clamp(58px,13vw,82px);line-height:1;filter:drop-shadow(0 4px 0 #c08b6d)}.caption{font-size:12px;font-weight:800;background:#fff8eddd;border-radius:99px;padding:4px 9px}
+.floor{position:absolute;bottom:9px;width:100%;text-align:center;font-size:10px;letter-spacing:2px;color:#8ba17b}
+.cat{position:absolute;z-index:3;width:78px;height:90px;background:transparent;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:translate(-50%,-50%);animation:bob 1.5s ease-in-out infinite;user-select:none}
+
+/* Original CSS-drawn chibi cats: no external images or downloads required */
+.cat{width:88px;height:104px;gap:0}
+.cat-art{position:relative;display:block;width:66px;height:69px;flex:none;margin-bottom:1px}
+.cat-art .body{position:absolute;z-index:0;left:17px;bottom:0;width:34px;height:27px;border-radius:48% 48% 35% 35%;background:var(--fur);border:2px solid var(--line);box-shadow:inset 0 -3px 0 #0000000b}
+.cat-art .head{position:absolute;z-index:2;left:7px;top:9px;width:52px;height:48px;border:2px solid var(--line);border-radius:45% 45% 48% 48%;background:var(--fur);box-shadow:inset 0 -4px 0 #0000000a}
+.cat-art .ear{position:absolute;z-index:1;top:1px;width:22px;height:25px;background:var(--fur);border:2px solid var(--line);border-radius:7px 12px 3px 4px;transform:rotate(-13deg);clip-path:polygon(0 100%,14% 0,100% 72%)}
+.cat-art .ear.left{left:8px}.cat-art .ear.right{right:8px;transform:scaleX(-1) rotate(-13deg)}
+.cat-art .ear:after{content:"";position:absolute;left:6px;top:7px;width:9px;height:12px;border-radius:7px;background:var(--inner)}
+.cat-art .eye{position:absolute;top:25px;width:6px;height:9px;background:var(--line);border-radius:50%}
+.cat-art .eye.left{left:19px}.cat-art .eye.right{right:19px}
+.cat-art .eye:after{content:"";position:absolute;top:1px;left:1px;width:2px;height:3px;background:#fff;border-radius:50%}
+.cat-art .nose{position:absolute;top:35px;left:50%;width:6px;height:5px;transform:translateX(-50%) rotate(45deg);background:#d98291;border-radius:2px 2px 4px 2px}
+.cat-art .mouth{position:absolute;top:39px;left:50%;width:12px;height:6px;transform:translateX(-50%);border-bottom:1.5px solid var(--line);border-radius:0 0 50% 50%}
+.cat-art .cheek{position:absolute;top:35px;width:9px;height:5px;background:#f59eb0a8;border-radius:50%}
+.cat-art .cheek.left{left:10px}.cat-art .cheek.right{right:10px}
+.cat-art .patch{position:absolute;z-index:3;pointer-events:none}
+.cat-art.calico .patch{left:10px;top:10px;width:17px;height:15px;background:#c97b4e;border-radius:70% 30% 60% 35%;transform:rotate(-12deg)}
+.cat-art.tabby .patch{left:15px;top:11px;width:4px;height:13px;background:#ad8055;border-radius:9px;box-shadow:8px -2px 0 #ad8055,16px 0 0 #ad8055}
+.cat-art.tuxedo .patch{left:20px;top:36px;width:26px;height:17px;background:#fffaf1;clip-path:polygon(20% 0,80% 0,100% 100%,0 100%)}
+.cat-art.black{--fur:#55505f;--line:#393543;--inner:#dca4b6}
+.cat-art.white{--fur:#fffaf1;--line:#b9a7a0;--inner:#efb0c0}
+.cat-art.cream{--fur:#f5d4a1;--line:#a77b52;--inner:#eaa1a9}
+.cat-art.calico{--fur:#fff1dc;--line:#916c54;--inner:#eaa1a9}
+.cat-art.tabby{--fur:#e9b77d;--line:#8e6447;--inner:#d78c96}
+.cat-art.pink{--fur:#f7c6d4;--line:#b7768e;--inner:#e994ad}
+.cat-art.tuxedo{--fur:#55515e;--line:#393543;--inner:#e9a8b9}
+.cat-art.siamese{--fur:#f4e0c4;--line:#96765e;--inner:#d99ca7}
+.cat-art.siamese .patch{left:17px;top:20px;width:33px;height:28px;background:#8b6b58;border-radius:45%}
+.cat-art.ginger{--fur:#f4a45f;--line:#a75e3b;--inner:#f1a4a8}
+.cat-art.ginger .patch{left:15px;top:10px;width:4px;height:14px;background:#c97842;border-radius:8px;box-shadow:9px -2px 0 #c97842,18px 0 0 #c97842}
+.cat-art .collar{position:absolute;z-index:4;left:18px;bottom:8px;width:30px;height:6px;border-radius:9px;background:var(--collar,#f2a2bb);border:1px solid #ffffff99}
+.cat-art .bell{position:absolute;z-index:5;left:30px;bottom:4px;width:7px;height:7px;background:#ffd86f;border:1px solid #c59a43;border-radius:50%}
+.cat.rare .cat-art:after{content:"✦";position:absolute;right:-1px;top:1px;color:#e7b84d;font-size:17px;text-shadow:0 1px #fff}
+
+/* Face features must sit above the head shape */
+.cat-art .head{z-index:2}
+.cat-art .eye,.cat-art .nose,.cat-art .mouth,.cat-art .cheek{z-index:4}
+.cat-art .patch{z-index:3}
+
+.cat .catname{margin-top:0;position:relative;z-index:6}
+@media(max-width:390px){.cat{width:78px;height:99px}.cat-art{transform:scale(.9);margin-bottom:-4px}}
+
+.catname{font-size:11px;font-weight:800;background:#fffaf2;border:1px solid #efd7c5;border-radius:99px;padding:2px 7px;white-space:nowrap;margin-top:2px}
+@keyframes bob{50%{margin-top:-5px}}.heart{position:absolute;z-index:5;pointer-events:none;font-size:25px;animation:float .85s ease-out forwards}@keyframes float{to{opacity:0;transform:translateY(-55px) scale(1.3)}}
+.notice{min-height:30px;text-align:center;font-size:13px;font-weight:800;color:#bd7d8e;padding:8px 0 2px}
+.panel{margin-top:10px;padding:13px}.panel h2{font-size:16px;margin:0 0 10px}.upgrades{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.upgrade{background:#fff0e5;border:2px solid #f0d2bd;border-radius:14px;padding:10px;text-align:left;min-height:88px;display:flex;flex-direction:column;gap:3px}
+.upgrade:disabled{opacity:.45;cursor:not-allowed}.utitle{font-weight:900;font-size:13px}.udesc{font-size:11px;line-height:1.4;color:#8e7164}.cost{font-size:12px;font-weight:900;color:#b86f72;margin-top:auto;padding-top:5px}
+.actions{display:flex;gap:8px;margin-top:10px}.secondary{flex:1;background:#e8f0df;border:2px solid #d0dfc3;border-radius:13px;padding:10px;font-size:12px;font-weight:800}.foot{text-align:center;color:#b49a8b;font-size:10px;padding-top:13px}
+</style></head><body><div class="app">
+<header><h1>🐾 あつまれ！にゃんこ食堂 🐾</h1><div class="sub">ごはんと愛情で、ねこたちをおもてなし。</div></header>
+<div class="stats"><div class="stat"><div class="small">💗 なかよしポイント</div><div class="num" id="points">0</div></div><div class="stat"><div class="small">🐈 来店したねこ</div><div class="num" id="visits">0匹</div></div></div>
+<section class="scene" id="scene" aria-label="ねこ食堂"><div class="window"></div><div class="sun">☀️</div><div class="shelf"></div><div class="plant">🪴</div><div class="bowl"><div class="food">🥣</div><div class="caption">おいしいごはん、どうぞ！</div></div><div class="floor">NYANKO DINER</div></section>
+<div class="notice" id="notice" aria-live="polite">ねこがやってくるのを待ってみよう…</div><noscript><div style="padding:12px;background:#fff0e5;border:2px solid #f0d2bd;border-radius:12px">このゲームを遊ぶには、ブラウザのJavaScriptを有効にしてください。</div></noscript>
+<section class="panel"><h2>🌷 お店をアップグレード</h2><div class="upgrades">
+<button class="upgrade" id="foodUpgrade"><span class="utitle">🍚 ごはんの魅力</span><span class="udesc">ねこが来る間隔を短くする</span><span class="cost" id="foodCost">必要: 10 pt</span></button>
+<button class="upgrade" id="loveUpgrade"><span class="utitle">💗 なでなで上手</span><span class="udesc">タップでもらえるポイントUP</span><span class="cost" id="loveCost">必要: 15 pt</span></button>
+<button class="upgrade" id="welcomeUpgrade"><span class="utitle">🪑 おもてなし席</span><span class="udesc">同時に来るねこが増える</span><span class="cost" id="welcomeCost">必要: 25 pt</span></button>
+<button class="upgrade" id="treatUpgrade"><span class="utitle">🍬 とっておきおやつ</span><span class="udesc">レアなねこが来るかも</span><span class="cost" id="treatCost">必要: 40 pt</span></button>
+</div><div class="actions"><button class="secondary" id="saveButton">💾 いま保存</button><button class="secondary" id="resetButton">🔄 はじめから</button></div></section>
+<div class="foot">この端末のブラウザに自動保存されます。</div></div>
+<script>
+(()=>{'use strict';const $=id=>document.getElementById(id),scene=$('scene');
+const types=[
+{face:'🐱',name:'ミケ',skin:'calico',collar:'#f1a1bd'},
+{face:'🐈',name:'しろ',skin:'white',collar:'#b6d7f2'},
+{face:'😺',name:'ちゃちゃ',skin:'cream',collar:'#f2c76c'},
+{face:'🐈‍⬛',name:'くろ',skin:'black',collar:'#b9a4ef'},
+{face:'😽',name:'もち',skin:'pink',collar:'#f0a2bb'},
+{face:'😻',name:'きらり',skin:'siamese',collar:'#f4ce6c',rare:true},
+{face:'🐯',name:'しま',skin:'tabby',collar:'#a9d8a4',rare:true},
+{face:'🐱',name:'おもち',skin:'tuxedo',collar:'#f2a6bb',rare:true},
+{face:'🐱',name:'ぽかぽか',skin:'ginger',collar:'#f2c76c',rare:true}
+];
+const fresh=()=>({points:0,visits:0,food:0,love:0,welcome:0,treat:0});let s=fresh(),cats=[],id=1;
+const costs={food:()=>Math.round(10*Math.pow(1.75,s.food)),love:()=>Math.round(15*Math.pow(1.8,s.love)),welcome:()=>Math.round(25*Math.pow(2,s.welcome)),treat:()=>Math.round(40*Math.pow(2.2,s.treat))};
+const fmt=n=>Math.floor(n).toLocaleString('ja-JP'),say=t=>$('notice').textContent=t;
+function save(msg=false){try{localStorage.setItem('nyankoDinerSaveV1',JSON.stringify(s))}catch(e){}if(msg)say('💾 お店の状態を保存したよ！')}
+function load(){try{const d=JSON.parse(localStorage.getItem('nyankoDinerSaveV1')||'null');if(d)for(const k of Object.keys(s))if(Number.isFinite(d[k])&&d[k]>=0)s[k]=Math.floor(d[k])}catch(e){}}
+function maxCats(){return Math.min(7,3+s.welcome)}
+const LEVEL_MAX={food:8,love:20,welcome:5,treat:10};
+function render(){
+  $('points').textContent=fmt(s.points);
+  $('visits').textContent=fmt(s.visits)+'匹';
+  for(const k of ['food','love','welcome','treat']){
+    const isMax=s[k]>=LEVEL_MAX[k];
+    $(k+'Cost').textContent=isMax?'最大レベル！':'必要: '+fmt(costs[k]())+' pt';
+    $(k+'Upgrade').disabled=isMax||s.points<costs[k]();
+  }
+}
+function spawn(){if(cats.length>=maxCats())return;const r=scene.getBoundingClientRect(),px=Math.min(52,r.width*.16),py=Math.min(55,r.height*.17);
+const x=px+Math.random()*Math.max(10,r.width-2*px),y=py+Math.random()*Math.max(10,r.height-2*py);
+let choices=types.slice(0,s.treat?Math.min(8,5+s.treat):5),t=choices[Math.floor(Math.random()*choices.length)],rare=!!t.rare&&Math.random()<Math.min(.85,.16+s.treat*.1);
+const c={id:id++,type:t,rare,el:null};const b=document.createElement('button');b.className='cat'+(rare?' rare':'');b.type='button';b.style.left=x+'px';b.style.top=y+'px';b.setAttribute('aria-label',t.name+'をなでる');b.innerHTML='<span class="cat-art '+t.skin+'" style="--collar:'+t.collar+'"><span class="body"></span><span class="ear left"></span><span class="ear right"></span><span class="head"></span><span class="patch"></span><span class="eye left"></span><span class="eye right"></span><span class="nose"></span><span class="mouth"></span><span class="cheek left"></span><span class="cheek right"></span><span class="collar"></span><span class="bell"></span></span><span class="catname">'+t.name+(rare?' ✨':'')+'</span>';b.addEventListener('click',()=>pet(c.id));c.el=b;scene.appendChild(b);cats.push(c);s.visits++;render();save();say(rare?'✨ レアねこ「'+t.name+'」が来たよ！タップしてなでてね！':'「'+t.name+'」が来たよ！タップしてなでてね！')}
+function pet(cid){const i=cats.findIndex(c=>c.id===cid);if(i<0)return;const c=cats[i],reward=1+s.love+(c.rare?2:0),r=scene.getBoundingClientRect(),cr=c.el.getBoundingClientRect(),h=document.createElement('div');s.points+=reward;h.className='heart';h.textContent=c.rare?'💖✨':'💗';h.style.left=(cr.left-r.left+cr.width/2)+'px';h.style.top=(cr.top-r.top+8)+'px';scene.appendChild(h);setTimeout(()=>h.remove(),900);c.el.remove();cats.splice(i,1);render();save();say('「'+c.type.name+'」は大満足！ なかよしポイント +'+reward+' 💗');setTimeout(spawn,350)}
+function buy(k,max){if(s[k]>=max||s.points<costs[k]()){say('ポイントが足りないみたい…ねこをなでて集めよう！');return}s.points-=costs[k]();s[k]++;render();save();say(({food:'ごはんのいい匂いが広がった！ねこが来やすくなったよ。',love:'なでなで上手になった！タップでもっと仲良しに！',welcome:'お席を増やしたよ！もっとねこをお迎えできるね。',treat:'おやつを用意したよ！レアねこに会えるかも！'})[k]);if(k==='welcome'||k==='food'||k==='treat')spawn()}
+$('foodUpgrade').onclick=()=>buy('food',8);$('loveUpgrade').onclick=()=>buy('love',20);$('welcomeUpgrade').onclick=()=>buy('welcome',5);$('treatUpgrade').onclick=()=>buy('treat',10);
+$('saveButton').onclick=()=>save(true);$('resetButton').onclick=()=>{if(!confirm('ポイントやアップグレードをリセットして、はじめから遊ぶ？'))return;s=fresh();cats.forEach(c=>c.el.remove());cats=[];id=1;try{localStorage.removeItem('nyankoDinerSaveV1')}catch(e){}render();say('新しいお店をオープン！ねこたちを待とう！');spawn()};
+try {
+  load();
+  render();
+  spawn();
+  setInterval(()=>{if(cats.length<maxCats())spawn()},Math.max(1400,5000-s.food*450));
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
+  window.addEventListener('pagehide',()=>save());
+} catch (err) {
+  console.error('にゃんこ食堂の初期化エラー:', err);
+  const notice=$('notice');
+  if(notice) notice.textContent='ゲームの起動中に問題が起きたよ。ページを再読み込みしてね。';
+}
+})();
+</script></body></html>

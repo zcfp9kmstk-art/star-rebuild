@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101923">
+<title>鉱脈∞ v0.3 — 鉱石の耐久度</title>
+<style>
+:root{--bg:#101923;--panel:#1a2a36;--line:#354b5b;--text:#f2f7fa;--muted:#a8bac7;--gold:#ffd166;--cyan:#79e4dc}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden}
+body{background:radial-gradient(ellipse at 50% 0%,#2a4350 0%,#101923 66%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;overscroll-behavior:none}
+.app{height:100dvh;max-width:650px;margin:0 auto;padding:calc(7px + env(safe-area-inset-top)) 10px calc(7px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:7px;min-height:0}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 auto}
+.brand{font-weight:950;font-size:clamp(1rem,4.4vw,1.3rem);letter-spacing:.03em}.tag{font-size:.66rem;color:var(--cyan);border:1px solid #4c7884;padding:4px 7px;border-radius:999px;white-space:nowrap}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;flex:0 0 auto}
+.stat{background:#1b2a36d9;border:1px solid var(--line);border-radius:11px;padding:7px 8px;min-width:0}.label{font-size:.66rem;color:var(--muted);white-space:nowrap}.value{font-size:clamp(.92rem,4vw,1.12rem);font-weight:900;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.field-wrap{flex:1 1 auto;min-height:130px;display:flex;flex-direction:column;gap:5px}
+.field-head{display:flex;justify-content:space-between;align-items:center;font-size:.76rem;color:var(--muted);padding:0 2px;flex:0 0 auto}
+.field{position:relative;isolation:isolate;overflow:hidden;flex:1 1 auto;min-height:0;border:1px solid #486071;border-radius:17px;background:
+radial-gradient(ellipse at 20% 15%,#36515b 0%,transparent 30%),
+radial-gradient(ellipse at 80% 75%,#253f4c 0%,transparent 38%),
+linear-gradient(145deg,#20313b,#111c25 75%);box-shadow:inset 0 0 30px #0005}
+.field:before{content:"";position:absolute;inset:0;opacity:.22;z-index:-1;background-image:radial-gradient(#8eabb7 1px,transparent 1px);background-size:23px 23px}
+.vein{position:absolute;width:42%;height:1px;background:#75929b;opacity:.12;transform:rotate(-25deg);pointer-events:none}
+.ore{position:absolute;display:grid;place-items:center;border:1px solid #a8bdc55c;border-radius:12px;background:linear-gradient(145deg,#314957e8,#17252fe8);box-shadow:0 4px 0 #0a1118a8,0 0 14px #6bd9e31a;min-width:43px;min-height:43px;width:clamp(43px,12vw,57px);height:clamp(43px,12vw,57px);padding:0;font-size:clamp(1.5rem,7vw,2.05rem);transform:translate(-50%,-50%);touch-action:manipulation;-webkit-tap-highlight-color:transparent;animation:pop .24s cubic-bezier(.2,1.6,.4,1) both;cursor:pointer;user-select:none}
+.ore:active{transform:translate(-50%,-50%) scale(.84)}.ore-icon{display:block;line-height:1}.hp-label{display:block;position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);font-size:9px;line-height:13px;min-width:25px;padding:0 4px;border-radius:7px;background:#101923;color:#fff;border:1px solid #607887;font-weight:900;white-space:nowrap}.ore.rare{border-color:#d3a4ff;box-shadow:0 4px 0 #0a1118a8,0 0 18px #b875ff70}.ore.gold{border-color:#ffda70;box-shadow:0 4px 0 #0a1118a8,0 0 18px #ffcf4b70}
+@keyframes pop{from{opacity:0;scale:.3}to{opacity:1;scale:1}}
+@keyframes collect{to{opacity:0;scale:1.7;transform:translate(-50%,-90%) rotate(18deg)}}
+.ore.damaged{filter:saturate(.85) brightness(.92)}.ore.cracked{border-color:#ffb26b;box-shadow:0 4px 0 #0a1118a8,0 0 15px #ff9f4370}.ore.gone{animation:collect .2s ease-in forwards;pointer-events:none}
+.bottom{flex:0 0 auto;display:flex;flex-direction:column;gap:6px}
+.inventory{background:#1a2934;border:1px solid var(--line);border-radius:12px;padding:7px 9px;display:flex;align-items:center;gap:8px;min-height:48px}
+.inv-title{font-size:.69rem;color:var(--muted);white-space:nowrap}.inv-items{display:flex;gap:8px;align-items:center;flex:1;min-width:0;overflow:hidden}.inv-item{font-size:.77rem;white-space:nowrap;font-weight:800}
+.controls{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:6px}
+button.action{min-width:0;border-radius:11px;padding:10px 5px;font-weight:850;font-size:clamp(.72rem,3.1vw,.85rem);border:1px solid #5b7484;background:#263c4a;color:var(--text);touch-action:manipulation}
+button.action.primary{background:linear-gradient(135deg,#ffdc7b,#f3a83d);border:0;color:#35230a;box-shadow:0 3px 0 #ad7427}
+button.action:disabled{opacity:.4}
+.hint{font-size:.65rem;color:#9db0bc;text-align:center;flex:0 0 auto;min-height:1em}
+.toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translate(-50%,12px);opacity:0;pointer-events:none;background:#f5f8fa;color:#16232b;padding:8px 13px;border-radius:999px;font-weight:850;font-size:.82rem;white-space:nowrap;box-shadow:0 4px 18px #0005;transition:.18s;z-index:10}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (max-height:650px){.app{gap:5px;padding-top:calc(4px + env(safe-area-inset-top));padding-bottom:calc(4px + env(safe-area-inset-bottom))}.stat{padding:5px 7px}.ore{min-width:38px;min-height:38px;width:clamp(38px,10vw,49px);height:clamp(38px,10vw,49px)}.inventory{min-height:40px;padding:5px 8px}.controls button{padding:8px 4px}.field-wrap{min-height:110px}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header><div><div class="brand">⛏️ 鉱脈∞</div></div><div class="tag">v0.3 · 鉱石の耐久度</div></header>
+  <section class="stats">
+    <div class="stat"><div class="label">💰 所持金</div><div class="value" id="money">0 G</div></div>
+    <div class="stat"><div class="label">⛏️ 採掘パワー</div><div class="value" id="power">1</div></div>
+    <div class="stat"><div class="label">💎 発見種類</div><div class="value" id="found">0 / 5</div></div>
+  </section>
+  <section class="field-wrap">
+    <div class="field-head"><span>鉱脈エリア</span><span id="fieldCount">鉱石 12 個</span></div>
+    <div class="field" id="field" aria-label="鉱石を何度かタップして壊す">
+      <i class="vein" style="left:-5%;top:30%"></i><i class="vein" style="right:-8%;top:70%;transform:rotate(32deg)"></i>
+    </div>
+  </section>
+  <section class="bottom">
+    <div class="inventory"><span class="inv-title">バッグ</span><div class="inv-items" id="inventory"></div></div>
+    <div class="controls">
+      <button class="action primary" id="sell">💰 全部売却</button>
+      <button class="action" id="upgrade">⛏️ 強化 25G</button>
+      <button class="action" id="save">💾 保存</button>
+    </div>
+    <div class="hint" id="hint">最初は何度も叩いて壊そう！ 強化すると早く壊せるよ</div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(() => {
+'use strict';
+const SAVE_KEY='koumyaku_infinity_v01_save';
+const types=[
+ {id:'stone',name:'石',icon:'🪨',price:1,weight:61},
+ {id:'copper',name:'銅',icon:'🟠',price:4,weight:25},
+ {id:'iron',name:'鉄',icon:'⚙️',price:10,weight:10},
+ {id:'silver',name:'銀',icon:'🥈',price:30,weight:3.5},
+ {id:'diamond',name:'ダイヤ',icon:'💎',price:100,weight:.5}
+];
+const blank=()=>({money:0,total:0,power:1,level:0,bag:{stone:0,copper:0,iron:0,silver:0,diamond:0},found:{},lastSaved:null});
+let state=blank(), toastTimer=null, spawnTimer=null;
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.floor(n).toLocaleString('ja-JP');
+function say(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1350);}
+function pick(){let total=types.reduce((s,o)=>s+o.weight,0),r=Math.random()*total;for(const o of types){r-=o.weight;if(r<=0)return o;}return types[0];}
+function positions(){const field=$('field');const rect=field.getBoundingClientRect();return {w:rect.width,h:rect.height};}
+function maxHp(ore){
+ // Early game is deliberately scrappy: common ores take a few hits, rare ores take more.
+ const base={stone:3,copper:5,iron:8,silver:12,diamond:18}[ore.id]||3;
+ return Math.max(1,base);
+}
+function spawnOne(){
+ const field=$('field');if(!field||field.clientWidth<10||field.clientHeight<10)return;
+ const existing=[...field.querySelectorAll('.ore:not(.gone)')];
+ if(existing.length>=18)return;
+ const ore=pick(),{w,h}=positions(),pad=32;
+ const x=pad+Math.random()*Math.max(1,w-pad*2),y=pad+Math.random()*Math.max(1,h-pad*2);
+ const btn=document.createElement('button');btn.className='ore'+(ore.id==='diamond'?' rare':ore.id==='silver'?' gold':'');
+ btn.type='button';btn.innerHTML=`<span class="ore-icon">${ore.icon}</span><span class="hp-label"></span>`;
+ btn.setAttribute('aria-label',ore.name+'を叩いて壊す');
+ btn.style.left=(x/w*100)+'%';btn.style.top=(y/h*100)+'%';btn.dataset.ore=ore.id;
+ btn.dataset.hp=String(maxHp(ore));btn.dataset.maxHp=String(maxHp(ore));
+ updateOreLook(btn);
+ btn.addEventListener('click',()=>hitOre(btn,ore));
+ field.appendChild(btn);
+}
+function updateOreLook(btn){
+ const hp=Number(btn.dataset.hp),max=Number(btn.dataset.maxHp);
+ const label=btn.querySelector('.hp-label');
+ if(label)label.textContent=hp+'/'+max;
+ btn.classList.toggle('damaged',hp<max);
+ btn.classList.toggle('cracked',hp<=Math.ceil(max/2));
+ const icon=btn.querySelector('.ore-icon');
+ if(icon && hp<=Math.ceil(max/2))icon.style.transform='rotate(-8deg)';
+}
+function fillField(){const field=$('field');const current=field.querySelectorAll('.ore:not(.gone)').length;for(let i=current;i<12;i++)spawnOne();updateFieldCount();}
+function hitOre(btn,ore){
+ if(btn.classList.contains('gone'))return;
+ const hp=Math.max(0,Number(btn.dataset.hp)-state.power);
+ btn.dataset.hp=String(hp);
+ if(hp>0){
+   updateOreLook(btn);
+   btn.animate([{transform:'translate(-50%,-50%) translateX(-3px)'},{transform:'translate(-50%,-50%) translateX(3px)'},{transform:'translate(-50%,-50%)'}],{duration:130});
+   $('hint').textContent=ore.name+'はまだ壊れない… あと '+hp+' ダメージ分！';
+   if(navigator.vibrate)navigator.vibrate(12);
+   return;
+ }
+ btn.classList.add('gone');
+ const amount=state.power;
+ state.bag[ore.id]=(state.bag[ore.id]||0)+amount;state.total+=amount;state.found[ore.id]=true;
+ render();autoSave();updateFieldCount();
+ if(ore.id==='diamond')say('💎 ダイヤ破壊！ +'+amount);
+ else if(ore.id==='silver')say('✨ 銀鉱石を破壊！ +'+amount);
+ else say(ore.icon+' '+ore.name+'を破壊！ +'+amount);
+ $('hint').textContent='壊せた！ また鉱石が出現するよ';
+ setTimeout(()=>{btn.remove();spawnOne();if(Math.random()<.7)spawnOne();updateFieldCount();},210);
+}
+function updateFieldCount(){const n=$('field').querySelectorAll('.ore:not(.gone)').length;$('fieldCount').textContent='鉱石 '+n+' 個';}
+function sell(){let gain=0;for(const ore of types){gain+=(state.bag[ore.id]||0)*ore.price;state.bag[ore.id]=0;}if(gain<=0){say('バッグが空だよ！');return;}state.money+=gain;render();autoSave();say('売却！ +'+fmt(gain)+' G');}
+function cost(){return Math.floor(25*Math.pow(2.05,state.level));}
+function upgrade(){const c=cost();if(state.money<c){say('資金が足りない！');return;}state.money-=c;state.level++;state.power++;render();autoSave();say('採掘パワー '+state.power+' にアップ！');}
+function render(){
+ $('money').textContent=fmt(state.money)+' G';$('power').textContent=fmt(state.power);
+ $('found').textContent=Object.keys(state.found).filter(k=>state.found[k]).length+' / '+types.length;
+ $('inventory').innerHTML=types.map(o=>`<span class="inv-item">${o.icon}${fmt(state.bag[o.id]||0)}</span>`).join('');
+ const c=cost();$('upgrade').textContent='⛏️ 強化 '+fmt(c)+'G';$('upgrade').disabled=state.money<c;
+ $('save').textContent='💾 保存';
+}
+function save(show=false){try{state.lastSaved=Date.now();localStorage.setItem(SAVE_KEY,JSON.stringify(state));if(show)say('セーブしたよ！');}catch(e){if(show)say('保存できなかったよ');}}
+function autoSave(){save(false);}
+function load(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const s=JSON.parse(raw);if(!s||typeof s!=='object')return;const b=blank();state={...b,...s,bag:{...b.bag,...(s.bag||{})},found:{...(s.found||{})}};state.money=Math.max(0,Number(state.money)||0);state.power=Math.max(1,Math.floor(Number(state.power)||1));state.level=Math.max(0,Math.floor(Number(state.level)||0));state.total=Math.max(0,Number(state.total)||0);}catch(e){state=blank();}}
+$('sell').addEventListener('click',sell);$('upgrade').addEventListener('click',upgrade);$('save').addEventListener('click',()=>save(true));
+load();render();fillField();
+spawnTimer=setInterval(()=>{const n=$('field').querySelectorAll('.ore:not(.gone)').length;if(n<18){spawnOne();if(Math.random()<.45)spawnOne();}updateFieldCount();},1150);
+window.addEventListener('resize',()=>{const ores=[...$('field').querySelectorAll('.ore:not(.gone)')];const {w,h}=positions();for(const b of ores){b.style.left=(32+Math.random()*Math.max(1,w-64))/w*100+'%';b.style.top=(32+Math.random()*Math.max(1,h-64))/h*100+'%';}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save(false);});
+})();
+</script>
+</body>
+</html>

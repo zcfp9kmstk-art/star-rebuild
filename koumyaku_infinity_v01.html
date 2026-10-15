@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101923">
+<title>鉱脈∞ — 採掘テスト版 v0.1</title>
+<style>
+:root{--bg:#101923;--panel:#192632;--panel2:#223342;--line:#344858;--text:#f2f6f8;--muted:#a9bac6;--gold:#ffd166;--cyan:#73e0dc;--green:#9ee493}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#233847 0%,var(--bg) 60%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;min-height:100vh}
+.wrap{max-width:560px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}.logo{font-size:1.35rem;font-weight:900;letter-spacing:.04em}.sub{font-size:.72rem;color:var(--muted);margin-top:3px}.pill{border:1px solid #547083;border-radius:999px;padding:6px 10px;font-size:.75rem;color:var(--cyan);white-space:nowrap}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat,.panel{background:linear-gradient(145deg,#20313e,#17232d);border:1px solid var(--line);border-radius:16px;padding:13px;box-shadow:0 8px 24px #0002}.label{font-size:.78rem;color:var(--muted)}.value{font-size:1.35rem;font-weight:850;margin-top:4px;overflow-wrap:anywhere}.unit{font-size:.75rem;color:var(--muted);font-weight:500}
+.mine{margin-top:12px;text-align:center;padding:16px 13px 18px;background:linear-gradient(180deg,#172631,#101a23);border:1px solid var(--line);border-radius:20px;position:relative;overflow:hidden}.depth{color:var(--cyan);font-size:.8rem;font-weight:700}.rock-wrap{height:184px;display:grid;place-items:center;position:relative}.rock{border:0;background:transparent;font-size:7rem;line-height:1;filter:drop-shadow(0 10px 0 #0003);touch-action:manipulation;cursor:pointer;transition:transform .08s;user-select:none;-webkit-tap-highlight-color:transparent}.rock:active{transform:scale(.91) rotate(-4deg)}.rock-hint{font-size:.8rem;color:var(--muted);margin-top:-4px}.hit{position:absolute;pointer-events:none;color:var(--gold);font-weight:900;font-size:1.2rem;animation:float .7s ease-out forwards;text-shadow:0 2px 4px #000}@keyframes float{to{transform:translateY(-50px);opacity:0}}
+button{font:inherit;cursor:pointer;touch-action:manipulation}.primary{width:100%;border:0;border-radius:13px;background:linear-gradient(135deg,#ffd166,#f4a940);color:#33220b;font-weight:900;padding:14px;margin-top:9px;box-shadow:0 4px 0 #b97527}.primary:active{transform:translateY(2px);box-shadow:0 2px 0 #b97527}.section-title{font-weight:850;margin:0 0 10px;font-size:1rem}.panel{margin-top:12px}.ore-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #344858}.ore-row:last-child{border-bottom:0}.ore-name{display:flex;align-items:center;gap:9px}.ore-icon{font-size:1.5rem;width:32px;text-align:center}.ore-price{font-size:.8rem;color:var(--muted)}.smallbtn{border:1px solid #597184;background:#243846;color:var(--text);border-radius:10px;padding:9px 11px;font-size:.82rem;font-weight:750;white-space:nowrap}.smallbtn:disabled{opacity:.42;cursor:not-allowed}.upgrade{display:flex;justify-content:space-between;align-items:center;gap:12px}.upgrade p{margin:4px 0 0;color:var(--muted);font-size:.78rem;line-height:1.4}.notice{font-size:.78rem;color:var(--muted);line-height:1.55;margin:12px 2px 0}.actions{display:flex;gap:8px;margin-top:12px}.actions button{flex:1}.footer{text-align:center;color:#8295a2;font-size:.7rem;margin-top:18px}.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#f2f6f8;color:#15212b;padding:10px 15px;border-radius:999px;font-weight:800;font-size:.85rem;opacity:0;transition:.2s;pointer-events:none;max-width:90%;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div><div class="logo">⛏️ 鉱脈∞</div><div class="sub">無限に深く、無限に掘れ。</div></div><div class="pill">採掘テスト版 v0.1</div></header>
+<div class="stats">
+  <div class="stat"><div class="label">💰 所持金</div><div class="value" id="money">0 G</div></div>
+  <div class="stat"><div class="label">⛏️ 1回の採掘</div><div class="value" id="power">1 <span class="unit">個</span></div></div>
+  <div class="stat"><div class="label">🪨 採掘した総数</div><div class="value" id="total">0 <span class="unit">個</span></div></div>
+  <div class="stat"><div class="label">💎 発見した鉱石</div><div class="value" id="found">0 <span class="unit">種類</span></div></div>
+</div>
+<section class="mine">
+  <div class="depth">▼ 地表近く — 深度 1</div>
+  <div class="rock-wrap"><button class="rock" id="mineButton" aria-label="岩をタップして採掘">🪨</button></div>
+  <div class="rock-hint">岩をタップして採掘しよう！</div>
+  <button class="primary" id="mineButton2">⛏️ 採掘する</button>
+</section>
+<section class="panel">
+  <h2 class="section-title">🧺 鉱石バッグ</h2>
+  <div id="ores"></div>
+  <button class="primary" id="sellButton">💰 持っている鉱石を全部売る</button>
+</section>
+<section class="panel">
+  <h2 class="section-title">🛠️ 強化</h2>
+  <div class="upgrade"><div><strong>⛏️ ツルハシ強化</strong><p id="upgradeDesc">1回の採掘量を増やす</p></div><button class="smallbtn" id="upgradeButton">強化する</button></div>
+</section>
+<section class="panel">
+  <h2 class="section-title">💾 セーブ</h2>
+  <div class="label" id="saveStatus">進行状況はこの端末のブラウザに自動保存されます。</div>
+  <div class="actions"><button class="smallbtn" id="saveButton">今すぐ保存</button><button class="smallbtn" id="resetButton">最初から</button></div>
+  <p class="notice">※ このテスト版は採掘・売却・強化・自動セーブの確認用です。ブラウザのデータ削除や別ブラウザへの変更でセーブが消える場合があります。「最初から」は進行状況を消すので注意！</p>
+</section>
+<div class="footer">KŌMYAKU ∞ · prototype 0.1</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(() => {
+'use strict';
+const SAVE_KEY = 'koumyaku_infinity_v01_save';
+const oreTypes = [
+  {id:'stone',name:'石',icon:'🪨',price:1,weight:70},
+  {id:'copper',name:'銅鉱石',icon:'🟠',price:4,weight:22},
+  {id:'iron',name:'鉄鉱石',icon:'⚙️',price:10,weight:7},
+  {id:'silver',name:'銀鉱石',icon:'🥈',price:30,weight:1}
+];
+const freshState = () => ({money:0,total:0,power:1,level:0,bag:{stone:0,copper:0,iron:0,silver:0},found:{},lastSaved:null});
+let state = freshState();
+let toastTimer;
+const $ = id => document.getElementById(id);
+const fmt = n => Math.floor(n).toLocaleString('ja-JP');
+function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1600);}
+function chooseOre(){const sum=oreTypes.reduce((a,o)=>a+o.weight,0);let r=Math.random()*sum;for(const o of oreTypes){r-=o.weight;if(r<=0)return o;}return oreTypes[0];}
+function mine(source){
+  for(let i=0;i<state.power;i++){const ore=chooseOre();state.bag[ore.id]=(state.bag[ore.id]||0)+1;state.total++;state.found[ore.id]=true;}
+  render(); autoSave();
+  const wrap=document.querySelector('.rock-wrap');const hit=document.createElement('div');hit.className='hit';hit.textContent='+'+state.power+' 個';hit.style.left=(25+Math.random()*45)+'%';hit.style.top='35%';wrap.appendChild(hit);setTimeout(()=>hit.remove(),750);
+  if(state.total===1)toast('採掘成功！鉱石を売って資金にしよう');
+}
+function sellAll(){let gained=0;for(const ore of oreTypes){const count=state.bag[ore.id]||0;gained+=count*ore.price;state.bag[ore.id]=0;}if(gained<=0){toast('売れる鉱石がないよ！');return;}state.money+=gained;render();autoSave();toast('鉱石を売却！ +'+fmt(gained)+' G');}
+function upgradeCost(){return Math.floor(25*Math.pow(2.05,state.level));}
+function upgrade(){const cost=upgradeCost();if(state.money<cost){toast('資金が足りないよ！');return;}state.money-=cost;state.level++;state.power++;render();autoSave();toast('ツルハシ強化！ 採掘量 '+state.power+' 個');}
+function render(){
+  $('money').textContent=fmt(state.money)+' G';$('power').innerHTML=fmt(state.power)+' <span class="unit">個</span>';$('total').innerHTML=fmt(state.total)+' <span class="unit">個</span>';$('found').innerHTML=Object.keys(state.found).filter(k=>state.found[k]).length+' <span class="unit">種類</span>';
+  $('ores').innerHTML=oreTypes.map(o=>`<div class="ore-row"><div class="ore-name"><span class="ore-icon">${o.icon}</span><div><strong>${o.name}</strong><div class="ore-price">${fmt(o.price)} G / 個</div></div></div><strong>${fmt(state.bag[o.id]||0)} 個</strong></div>`).join('');
+  const cost=upgradeCost();$('upgradeButton').textContent=fmt(cost)+' G';$('upgradeButton').disabled=state.money<cost;$('upgradeDesc').textContent=`採掘量 +1（現在 ${state.power} 個 / 回）`;
+  $('saveStatus').textContent=state.lastSaved?'最終保存：'+new Date(state.lastSaved).toLocaleString('ja-JP'):'進行状況はこの端末のブラウザに自動保存されます。';
+}
+function save(showMessage=false){try{state.lastSaved=Date.now();localStorage.setItem(SAVE_KEY,JSON.stringify(state));render();if(showMessage)toast('セーブしたよ！');}catch(e){$('saveStatus').textContent='保存できませんでした。ブラウザの設定を確認してください。';if(showMessage)toast('保存できなかったよ');}}
+function autoSave(){save(false);}
+function load(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const saved=JSON.parse(raw);if(!saved||typeof saved!=='object')return;const base=freshState();state={...base,...saved,bag:{...base.bag,...(saved.bag||{})},found:{...(saved.found||{})}};state.money=Math.max(0,Number(state.money)||0);state.total=Math.max(0,Number(state.total)||0);state.power=Math.max(1,Math.floor(Number(state.power)||1));state.level=Math.max(0,Math.floor(Number(state.level)||0));}catch(e){state=freshState();}}
+function reset(){if(!confirm('本当に最初からやり直す？ 今のセーブデータは消えるよ。'))return;state=freshState();try{localStorage.removeItem(SAVE_KEY);}catch(e){}render();toast('新しい採掘を始めよう！');}
+$('mineButton').addEventListener('click',()=>mine('rock'));$('mineButton2').addEventListener('click',()=>mine('button'));$('sellButton').addEventListener('click',sellAll);$('upgradeButton').addEventListener('click',upgrade);$('saveButton').addEventListener('click',()=>save(true));$('resetButton').addEventListener('click',reset);
+load();render();
+})();
+</script>
+</body>
+</html>
